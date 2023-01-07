@@ -1,0 +1,11 @@
+.filter {
+    display: block;
+    margin: 50px auto 0 auto;
+    width: 550px;
+    height: 40px;
+    color: black;
+}
+
+.filter::placeholder {
+    opacity: 1;
+}
