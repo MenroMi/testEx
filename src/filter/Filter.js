@@ -1,6 +1,6 @@
 // basics
 import { Component } from "react";
-import Select, { StylesConfig } from "react-select";
+import Select from "react-select";
 
 // styles
 import "./Filter.css";

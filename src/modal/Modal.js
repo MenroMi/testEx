@@ -2,27 +2,55 @@
 import { Component } from "react";
 import "./Modal.css";
 
+// plugins
+import { v4 as uuidv4 } from 'uuid';
+
+// images
+import cross from "./cross50.png";
+
 class ModalWindow extends Component {
 
-    // state = {
-    //     disabled: false
-    // }
-    // componentDidMount() {
-    //     this.changeDisabled(this.props.disabled);
-    // }
+    componentDidUpdate(prevProps) {
+        if (prevProps.item !== this.props.item) {
+            this.dataFromCard(this.props.item);
+        }
+    }
 
-    // changeDisabled = (bool) => {
-    //     this.setState({ disabled: bool })
-    // }
+    dataFromCard = (arr) => {
+        return arr.map((item) => {
+
+            if (item.includes("label")) {
+                return null;
+            }
+
+            return (<li className="descr-line" key={uuidv4()}>
+                <span className="descr-line__text">
+                    {item[0]}: {item[1]}
+                </span>
+            </li>)
+        })
+    }
 
     render() {
-        const { disabled } = this.props;
-        console.log(disabled);
+        const { disabled, closeWin, item } = this.props;
+        const details = disabled ? null : this.dataFromCard(item);
         return (
-            <div style={{
-                display: disabled ? 'none' : 'block'
-            }} className="overlay">
+            <div
+                style={{ display: disabled ? 'none' : 'block' }}
+                className="overlay"
+                onClick={closeWin}
+            >
                 <div className="modal-window">
+                    <ul className="modal-window__info">
+                        {details}
+                    </ul>
+                    <div className="modal-window__card" style={{
+                        backgroundColor: item[0][1]
+                    }}>{item[0][1]}</div>
+                    <a
+                        onClick={closeWin}
+                        className="cross"
+                        href="#top"><img id="crossClose" src={cross} alt="Cross for exit" /></a>
 
                 </div>
             </div>

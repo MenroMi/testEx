@@ -1,17 +1,20 @@
 // basic
 import { Component } from 'react';
 
+
 // plugins
 import { v4 as uuidv4 } from 'uuid';
 
-// components
+// services
 import Products from './service/resources';
-import Card from './card/Card';
-import Filter from './filter/Filter';
+
+// components
 import ModalWindow from './modal/Modal';
+import Card from './card/Card';
 
 // styles
 import './App.css';
+import Main from './main/Main';
 
 
 class App extends Component {
@@ -21,6 +24,8 @@ class App extends Component {
 
     state = {
         colors: [],
+        modalColor: {},
+        disabled: true,
         page: null,
         totalPages: null,
         endedElement: false,
@@ -29,10 +34,37 @@ class App extends Component {
     componentDidMount() {
         this.getProducts();
 
+        document.addEventListener("keydown", this.closeModalWindow, false);
+    }
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.closeModalWindow, false);
     }
 
-    onChangeData = (newData) => {
+    openModalWindow = (chosenCard) => {
+        let arrCard = Object.entries(chosenCard);
 
+        this.setState(() => {
+            return {
+                disabled: false,
+                modalColor: arrCard
+            }
+        });
+
+    }
+
+    closeModalWindow = (e) => {
+        if (e.key === 'Escape' || e.target.id === "crossClose" || e.target.className === "overlay") {
+            this.setState({ disabled: true });
+        }
+    }
+
+    getProducts = async () => {
+
+        await this.products.getProducts().then(this.onChangeData);
+    }
+
+
+    onChangeData = (newData) => {
         const { data, page, total_pages } = newData;
 
         this.setState(({ colors }) => {
@@ -42,19 +74,6 @@ class App extends Component {
                 totalPages: total_pages
             }
         })
-    }
-
-    addElementOnTable = (data) => {
-        return data.map(({ ...item }) => {
-            return <Card
-                {...item}
-                key={uuidv4()}
-            />
-        })
-    }
-
-    openModalWithInfo = (e) => {
-        return
     }
 
     onChangePage = (page) => {
@@ -69,35 +88,34 @@ class App extends Component {
 
     }
 
-    getProducts = async () => {
-
-        await this.products.getProducts().then(this.onChangeData);
+    addElementOnTable = (data) => {
+        return data.map(({ ...item }) => {
+            return <Card
+                {...item}
+                key={uuidv4()}
+            />
+        })
     }
-
 
     render() {
 
-
-        const { colors, endedElement } = this.state;
+        const { disabled, endedElement, colors, modalColor } = this.state;
         const details = this.addElementOnTable(colors);
 
         return (
             <>
-                <ModalWindow disabled={false} />
-                <Filter
-                    items={colors}
-                    openModalWithInfo={this.openModalWithInfo}
+                <Main
+                    openWin={this.openModalWindow}
+                    details={details}
+                    endedElement={endedElement}
+                    colors={colors}
+                    onChangePage={this.onChangePage}
                 />
-                <ul className="list">
-                    {details}
-                </ul>
-                <button
-                    className='button'
-                    style={{
-                        display: `${endedElement ? 'none' : 'block'}`
-                    }}
-                    onClick={() => this.onChangePage(2)}
-                >Click me</button>
+                <ModalWindow
+                    disabled={disabled}
+                    closeWin={this.closeModalWindow}
+                    item={modalColor} />
+
             </>
         )
     }
