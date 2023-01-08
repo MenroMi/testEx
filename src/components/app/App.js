@@ -29,6 +29,7 @@ class App extends Component {
         currentPage: 1,
         itemsPerPage: 5,
         totalPages: null, // data from server
+        error: false
     }
 
     // in mounting get request on server and create listener on key button "escape"
@@ -62,9 +63,23 @@ class App extends Component {
         }
     }
 
+    onErrorCatch = () => {
+        this.setState({ error: true });
+    }
+
+    errorMessage = () => {
+        return (
+            <h2 style={{ gridColumn: "1/4", justifySelf: "center" }}>ERROR. Please contant with administration.</h2>
+        )
+    }
+
     // get request on server
     getProducts = async () => {
-        await this.products.getProducts().then(this.onChangeData).catch();
+        try {
+            await this.products.getProducts().then(this.onChangeData).catch(this.onErrorCatch);
+        } catch {
+            this.onErrorCatch();
+        }
     }
 
     // change state of data after mounting
@@ -102,13 +117,20 @@ class App extends Component {
 
     render() {
 
-        const { disabled, colors, modalColor, totalPages,
-            itemsPerPage, currentPage } = this.state;
+        const {
+            disabled,
+            colors,
+            modalColor,
+            totalPages,
+            itemsPerPage,
+            currentPage,
+            error
+        } = this.state;
 
         const indexOfLastItem = currentPage * itemsPerPage;
         const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-        const details = this.addElementOnTable(colors.slice(indexOfFirstItem, indexOfLastItem));
+        const details = !error ? this.addElementOnTable(colors.slice(indexOfFirstItem, indexOfLastItem)) : this.errorMessage();
 
         return (
             <>
