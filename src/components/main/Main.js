@@ -14,6 +14,7 @@ class Main extends Component {
     }
 
     onChangePage = (e) => {
+        e.preventDefault();
         const arrow = e.target.id;
         const { page } = this.state;
         const { totalPages } = this.props;
