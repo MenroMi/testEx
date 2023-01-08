@@ -34,6 +34,7 @@ class ModalWindow extends Component {
     render() {
         const { disabled, closeWin, item } = this.props;
         const details = disabled ? null : this.dataFromCard(item);
+        const color = disabled ? null : item[0][1];
         return (
             <div
                 style={{ display: disabled ? 'none' : 'block' }}
@@ -45,8 +46,8 @@ class ModalWindow extends Component {
                         {details}
                     </ul>
                     <div className="modal-window__card" style={{
-                        backgroundColor: item[0][1]
-                    }}>{item[0][1]}</div>
+                        backgroundColor: color
+                    }}>{color}</div>
                     <a
                         onClick={closeWin}
                         className="cross"

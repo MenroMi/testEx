@@ -1,8 +1,7 @@
 .list {
-  width: 1200px;
   margin: 50px auto;
   display: grid;
-  grid-template: 1fr / repeat(3, 250px);
+  grid-template: repeat(2, 1fr) / repeat(3, 250px);
   justify-content: center;
   gap: 10px;
 }

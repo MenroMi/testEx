@@ -4,30 +4,58 @@ import { Component } from 'react';
 // components
 import Filter from '../filter/Filter';
 
+// styles
+import "./Main.css"
 
 class Main extends Component {
 
+    state = {
+        page: 1
+    }
+
+    onChangePage = (e) => {
+        const arrow = e.target.id;
+        const { page } = this.state;
+        const { totalPages } = this.props;
+
+        let pageValue = page;
+
+        if (arrow === "prev") {
+            pageValue = page - 1 !== 0 ? page - 1 : 1;
+            this.setState(() => ({ page: page - 1 !== 0 ? page - 1 : 1 }))
+        }
+
+        if (arrow === "next") {
+            pageValue = page !== totalPages ? page + 1 : totalPages;
+            this.setState(() => ({ page: page !== totalPages ? page + 1 : totalPages }))
+        }
+
+        this.props.handlePageChange(pageValue);
+
+    }
+
     render() {
 
-        const { details, endedElement, colors, onChangePage } = this.props;
-
+        const { details, colors, openWin } = this.props;
         return (
-            <>
+            <main>
                 <Filter
                     items={colors}
-                    openModalWithInfo={this.props.openWin}
+                    openModalWithInfo={openWin}
                 />
                 <ul className="list">
                     {details}
                 </ul>
-                <button
-                    className='button'
-                    style={{
-                        display: `${endedElement ? 'none' : 'block'}`
-                    }}
-                    onClick={() => onChangePage(2)}
-                >Click me</button>
-            </>
+                <div className="buttons">
+                    <a href="#top"
+                        onClick={this.onChangePage}
+                    ><button id='prev'>Previous</button></a>
+                    <a href="#top"
+                        onClick={this.onChangePage}
+                    ><button id="next">Next</button></a>
+
+                </div>
+            </main>
         )
     }
 }

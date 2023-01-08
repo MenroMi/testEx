@@ -6,15 +6,15 @@ import { Component } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 // services
-import Products from './service/resources';
+import Products from '../service/resources';
 
 // components
-import ModalWindow from './modal/Modal';
-import Card from './card/Card';
+import ModalWindow from "../modal/Modal"
+import Card from '../card/Card';
 
 // styles
 import './App.css';
-import Main from './main/Main';
+import Main from '../main/Main';
 
 
 class App extends Component {
@@ -26,14 +26,13 @@ class App extends Component {
         colors: [],
         modalColor: {},
         disabled: true,
-        page: null,
+        currentPage: 1,
+        itemsPerPage: 5,
         totalPages: null,
-        endedElement: false,
     }
 
     componentDidMount() {
         this.getProducts();
-
         document.addEventListener("keydown", this.closeModalWindow, false);
     }
     componentWillUnmount() {
@@ -59,37 +58,29 @@ class App extends Component {
     }
 
     getProducts = async () => {
-
         await this.products.getProducts().then(this.onChangeData);
     }
 
 
-    onChangeData = (newData) => {
-        const { data, page, total_pages } = newData;
+    onChangeData = (req) => {
+        const { data, total } = req;
+        const { itemsPerPage } = this.state;
+        const totalPages = Math.ceil(total / itemsPerPage);
+        const newData = [];
+        for (let i = 0; i < total / data.length; i++) {
+            newData.push(...data);
+        }
 
-        this.setState(({ colors }) => {
+        this.setState(() => {
             return {
-                colors: [...colors, ...data],
-                page,
-                totalPages: total_pages
+                colors: [...newData],
+                totalPages
             }
         })
     }
 
-    onChangePage = (page) => {
-
-        if (page < this.state.totalPages) {
-            this.setState({ page });
-        } else {
-            this.setState({ endedElement: true });
-        }
-
-        this.getProducts();
-
-    }
-
     addElementOnTable = (data) => {
-        return data.map(({ ...item }) => {
+        return data.map((item) => {
             return <Card
                 {...item}
                 key={uuidv4()}
@@ -97,19 +88,29 @@ class App extends Component {
         })
     }
 
+    handlePageChange = (page) => {
+        this.setState({ currentPage: page });
+    }
+
     render() {
 
-        const { disabled, endedElement, colors, modalColor } = this.state;
-        const details = this.addElementOnTable(colors);
+        const { disabled, colors, modalColor, totalPages,
+            itemsPerPage, currentPage } = this.state;
+
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+        const details = this.addElementOnTable(colors.slice(indexOfFirstItem, indexOfLastItem));
 
         return (
             <>
                 <Main
                     openWin={this.openModalWindow}
                     details={details}
-                    endedElement={endedElement}
-                    colors={colors}
-                    onChangePage={this.onChangePage}
+                    colors={colors.slice(indexOfFirstItem, indexOfLastItem)}
+                    handlePageChange={this.handlePageChange}
+                    totalPages={totalPages}
+
                 />
                 <ModalWindow
                     disabled={disabled}
