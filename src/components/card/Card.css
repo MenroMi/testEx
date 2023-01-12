@@ -6,4 +6,11 @@
     border-radius: 10px;
     color: white;
     text-transform: uppercase;
+    filter: grayscale(0);
+    transition: .5 all;
+    cursor: pointer;
+}
+
+.list__card:hover {
+    filter: grayscale(70%);
 }

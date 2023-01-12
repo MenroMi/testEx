@@ -17,12 +17,7 @@ class ModalWindow extends Component {
     }
 
     dataFromCard = (arr) => {
-        return arr.map((item) => {
-
-            if (item.includes("label")) {
-                return null;
-            }
-
+        return arr.map(item => {
             return (<li className="descr-line" key={uuidv4()}>
                 <span className="descr-line__text">
                     {item[0]}: {item[1]}
@@ -34,7 +29,7 @@ class ModalWindow extends Component {
     render() {
         const { disabled, closeWin, item } = this.props;
         const details = disabled ? null : this.dataFromCard(item);
-        const color = disabled ? null : item[0][1];
+        const color = disabled ? null : item.filter(item => item[0] === "color")[0][1];
         return (
             <div
                 style={{ display: disabled ? 'none' : 'block' }}

@@ -9,26 +9,19 @@ import "./Main.css"
 
 class Main extends Component {
 
-    state = {
-        page: 1
-    }
-
     onChangePage = (e) => {
         e.preventDefault();
         const arrow = e.target.id;
-        const { page } = this.state;
-        const { totalPages } = this.props;
+        const { totalPages, currentPage } = this.props;
 
-        let pageValue = page;
+        let pageValue = currentPage;
 
         if (arrow === "prev") {
-            pageValue = page - 1 !== 0 ? page - 1 : 1;
-            this.setState(() => ({ page: page - 1 !== 0 ? page - 1 : 1 }))
+            pageValue = currentPage - 1 !== 0 ? currentPage - 1 : 1;
         }
 
         if (arrow === "next") {
-            pageValue = page !== totalPages ? page + 1 : totalPages;
-            this.setState(() => ({ page: page !== totalPages ? page + 1 : totalPages }))
+            pageValue = currentPage !== totalPages ? currentPage + 1 : totalPages;
         }
 
         this.props.handlePageChange(pageValue);
@@ -37,13 +30,16 @@ class Main extends Component {
 
     render() {
 
-        const { details, colors, openWin } = this.props;
+        const { details, onFilter, err, load, color, onModal } = this.props;
         return (
             <main>
                 <Filter
-                    items={colors}
-                    openModalWithInfo={openWin}
+                    onFilter={onFilter}
+                    data={color}
+                    onModal={onModal}
                 />
+                {load}
+                {err}
                 <ul className="list">
                     {details}
                 </ul>

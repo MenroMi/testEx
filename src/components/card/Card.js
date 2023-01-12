@@ -10,9 +10,12 @@ class Card extends Component {
         const { name, color } = this.props;
 
         return (
-            <li className="list__card" style={{
-                backgroundColor: `${color}`
-            }}>
+            <li className="list__card"
+                onClick={this.props.onOpenModal}
+
+                style={{
+                    backgroundColor: `${color}`
+                }}>
                 {name}
             </li>
         )

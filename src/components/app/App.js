@@ -11,6 +11,7 @@ import Products from '../service/resources';
 import ModalWindow from "../modal/Modal"
 import Card from '../card/Card';
 import ErrorBoundary from '../errorBoundary/ErrorBoundary';
+import Spinner from '../../spinnerLoading/Spinner';
 
 // styles
 import './App.css';
@@ -21,15 +22,19 @@ class App extends Component {
 
     products = new Products(); // class instance with request method
 
-
-    state = {
-        colors: [], // data with items
-        modalColor: {}, // selected item when modal open
-        disabled: true, // modal off or on
-        currentPage: 1,
-        itemsPerPage: 5,
-        totalPages: null, // data from server
-        error: false
+    constructor(props) {
+        super(props);
+        this.state = {
+            colors: [], // data with items
+            modalColor: {}, // selected item when modal open
+            search: "",
+            disabled: true, // modal off or on
+            currentPage: 1, // current page on screen
+            itemsPerPage: 5, // how much items should be on page
+            totalPages: null, // data from server
+            error: false,
+            loading: true,
+        }
     }
 
     // in mounting get request on server and create listener on key button "escape"
@@ -44,16 +49,72 @@ class App extends Component {
     }
 
     // after select one of item app open modal with info
-    openModalWindow = (chosenCard) => {
-        let arrCard = Object.entries(chosenCard);
+    openModalWindow = (e, chosenCard = null) => {
+        const { colors, currentPage, itemsPerPage } = this.state;
 
-        this.setState(() => {
-            return {
-                disabled: false,
-                modalColor: arrCard
-            }
-        });
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const data = colors.slice(indexOfFirstItem, indexOfLastItem);
+        const target = e.target.textContent;
+        const card = data.filter(item => item.name === target);
 
+
+        if (chosenCard) {
+            const [arr] = chosenCard;
+
+            let arrCard = Object.entries(arr);
+            this.setState(() => {
+                return {
+                    disabled: false,
+                    modalColor: arrCard
+                }
+            });
+        } else {
+            const [arr] = card;
+
+            let arrCard = Object.entries(arr);
+            this.setState(() => {
+                return {
+                    disabled: false,
+                    modalColor: arrCard
+                }
+            });
+        }
+
+    }
+
+    // change term value after user type
+    updateTerm = (search) => {
+        this.setState({ search });
+    }
+
+    // process filtering data
+    onChangeData = (data) => {
+        const { search } = this.state;
+
+        if (search.length > 0 && typeof +search === "number") {
+            let filterData = data.filter(item => item.id === parseInt(search));
+            return filterData;
+        } else {
+            return data;
+        }
+    }
+
+    // first process data from API
+    reqData = (req) => {
+        const { data, total } = req;
+        const { itemsPerPage } = this.state;
+        const totalPages = Math.ceil(total / itemsPerPage);
+
+        const newData = [];
+        for (let i = 0; i < Math.ceil(total / data.length); i++) {
+            newData.push(...data);
+        }
+        this.setState(() => ({
+            colors: [...newData],
+            totalPages,
+            loading: false
+        }))
     }
 
     // after click on cross or escape or click on overlay modal window is closed
@@ -76,35 +137,21 @@ class App extends Component {
     // get request on server
     getProducts = async () => {
         try {
-            await this.products.getProducts().then(this.onChangeData).catch(this.onErrorCatch);
+            await this.products.getProducts().then(this.reqData).catch(this.onErrorCatch);
         } catch {
             this.onErrorCatch();
         }
     }
 
-    // change state of data after mounting
-    onChangeData = (req) => {
-        const { data, total } = req;
-        const { itemsPerPage } = this.state;
-        const totalPages = Math.ceil(total / itemsPerPage);
-        const newData = [];
-
-
-        for (let i = 0; i < total / data.length; i++) {
-            newData.push(...data);
-        }
-
-        this.setState(() => ({
-            colors: [...newData],
-            totalPages
-        }))
-    }
+    // // change state of data after mounting
 
     // output available data on page
     addElementOnTable = (data) => {
         return data.map((item) => {
             return <Card
+                onOpenModal={this.openModalWindow}
                 {...item}
+
                 key={uuidv4()}
             />
         })
@@ -124,23 +171,32 @@ class App extends Component {
             totalPages,
             itemsPerPage,
             currentPage,
-            error
+            error,
+            loading
         } = this.state;
 
         const indexOfLastItem = currentPage * itemsPerPage;
         const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-        const details = !error ? this.addElementOnTable(colors.slice(indexOfFirstItem, indexOfLastItem)) : this.errorMessage();
+        const load = loading ? <Spinner /> : null;
+        const errMessage = error ? this.errorMessage() : null;
+        const details = !(loading || error) ? this.addElementOnTable(this.onChangeData(colors.slice(indexOfFirstItem, indexOfLastItem))) : null;
+        const colorDropdownList = this.onChangeData(colors.slice(indexOfFirstItem, indexOfLastItem));
 
         return (
             <>
                 <ErrorBoundary>
+
                     <Main
-                        openWin={this.openModalWindow}
+                        onModal={this.openModalWindow}
+                        onFilter={this.updateTerm}
                         details={details}
-                        colors={colors.slice(indexOfFirstItem, indexOfLastItem)}
+                        color={colorDropdownList}
                         handlePageChange={this.handlePageChange}
                         totalPages={totalPages}
+                        currentPage={currentPage}
+                        load={load}
+                        err={errMessage}
                     />
                 </ErrorBoundary>
 
